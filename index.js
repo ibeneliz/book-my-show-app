@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const routes = require('express').Router();
 const MysqlClient = require('./connection/connection.js');
+const redisClient = require("./middleware/redis-cache.js");
 const theaterRoutes = require('./controller/theaterController.js');
 require("dotenv").config();
 
@@ -14,6 +15,13 @@ MysqlClient.connect((err) => {
 if (err) throw err;
 console.log('Connected to MySQL Server!');
 });
+
+try {
+    redisClient.connect();
+    console.log('Connected to redis.');
+} catch (error) {
+    console.log(error);
+}
 
 app.get('/', (req, res) => {
     return res.status(200).send("Welcome to Book My Show API.");
