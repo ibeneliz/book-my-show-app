@@ -1,0 +1,9 @@
+It’s been 2 years since you built this API. The API overtime has become slow. Which columns would you index to improve the performance of the API ? Why ?
+
+Indexes available in following tables
+***********************************
+Movie table -> movie_id, show_id, theatre_id (primary key and foreign key)
+Theatre table -> theatre_id (primary key)
+Shows table -> show_id (primary key)
+
+The columns that are in where clause and join should be indexed to improve the performance of the API. So when we query for shows in a specific theater on a specific date movie_date column needs to be indexed.
