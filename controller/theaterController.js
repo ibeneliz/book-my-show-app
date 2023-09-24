@@ -5,18 +5,28 @@ const redisClient = require("../middleware/redis-cache.js");
 const mysql = require('mysql');
 theaterRoutes.use(bodyParser.json());
 
-theaterRoutes.get('/:city',(req,res) => {
+theaterRoutes.get('/:city', async(req,res) => {
     const city = req.params.city;
+    // Check if the data is cached in Redis
+    const cachedData = await redisClient.Client.get(`city:${city}`);
+    if (cachedData) {
+        // Return the cached data
+        return res.status(200).json(JSON.parse(cachedData));
+    }
+    // Get the data from the database
     let selectQuery = 'select theatre_name, city from theatre where city = ?';
     let query = mysql.format(selectQuery, [city]);
-    mysqlClient.Client.query(query, (err, rows) => {
+    mysqlClient.Client.query(query, async(err, rows) => {
         if (err) {
             console.log(err);
-            throw err; }
+            return res.status(500).json({"message" : "Error occured!"});
+        }
         console.log('Result: \n', rows);
         if(rows.length == 0){
             return res.status(400).json({"message" : "No theaters available in the selected city."});
         }
+        // Cache the data in Redis
+        await redisClient.Client.set(`city:${city}`, JSON.stringify(rows), { EX: 10 });
         return res.status(200).json(rows);
     });
 });
